@@ -1,0 +1,60 @@
+name: Build and Push to GHCR with SHA
+
+on:
+  push:
+    paths:
+      - 'frontend/**'
+      - 'backend/**'
+      - '.github/workflows/ghcr-build.yml'
+  workflow_dispatch:
+
+jobs:
+  build-frontend:
+    name: Build & Push Frontend to GHCR
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || contains(join(github.event.commits.*.modified), 'frontend/')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/frontend:latest
+            ghcr.io/${{ github.repository_owner }}/frontend:${{ github.sha }}
+
+  build-backend:
+    name: Build & Push Backend to GHCR
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || contains(join(github.event.commits.*.modified), 'backend/')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/backend:latest
+            ghcr.io/${{ github.repository_owner }}/backend:${{ github.sha }}
