@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 env:
-  PROJECT_ID: healthy-highway-466213
+  PROJECT_ID: healthy-highway-466213-h9
   REGION: europe-west1
   REPOSITORY: containers
 
