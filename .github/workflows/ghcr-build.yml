@@ -1,4 +1,4 @@
-name: Build and Push to GHCR with SHA
+name: Build, Push & Deploy to GHCR + GCP Cloud Run
 
 on:
   push:
@@ -70,3 +70,55 @@ jobs:
           tags: |
             ghcr.io/${{ steps.vars.outputs.owner_lc }}/backend:latest
             ghcr.io/${{ steps.vars.outputs.owner_lc }}/backend:${{ github.sha }}
+
+  deploy-frontend:
+    name: Deploy Frontend to Cloud Run
+    runs-on: ubuntu-latest
+    needs: build-frontend
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Configure gcloud CLI
+        run: |
+          gcloud config set project healthy-highway-466213-h9
+          gcloud config set run/region europe-west1
+
+      - name: Deploy Frontend to Cloud Run
+        run: |
+          gcloud run deploy frontend-service \
+            --image=ghcr.io/${{ github.repository_owner }}/frontend:${{ github.sha }} \
+            --platform=managed \
+            --allow-unauthenticated \
+            --port=3000
+
+  deploy-backend:
+    name: Deploy Backend to Cloud Run
+    runs-on: ubuntu-latest
+    needs: build-backend
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Configure gcloud CLI
+        run: |
+          gcloud config set project healthy-highway-466213-h9
+          gcloud config set run/region europe-west1
+
+      - name: Deploy Backend to Cloud Run
+        run: |
+          gcloud run deploy backend-service \
+            --image=ghcr.io/${{ github.repository_owner }}/backend:${{ github.sha }} \
+            --platform=managed \
+            --allow-unauthenticated \
+            --port=8080
