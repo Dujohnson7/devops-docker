@@ -12,7 +12,6 @@ jobs:
   build-frontend:
     name: Build & Push Frontend to GHCR
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' || contains(join(github.event.commits.*.modified), 'frontend/')
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -37,7 +36,6 @@ jobs:
   build-backend:
     name: Build & Push Backend to GHCR
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' || contains(join(github.event.commits.*.modified), 'backend/')
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
